@@ -1,4 +1,4 @@
-name: update_env_infrustructure
+name: update_env_infrastructure
 
 on:
   workflow_dispatch:

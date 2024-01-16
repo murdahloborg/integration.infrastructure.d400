@@ -7,6 +7,25 @@ on:
 jobs:  
   update-ca-image:
     runs-on: [ ubuntu-latest ]
+    permissions:
+      contents: write
+
     steps:
-      - id: test
-        run: echo "Action was triggered! ca=${{ github.event.client_payload.ca_name }} image=${{ github.event.client_payload.ca_image }}"
+      - name: Intro
+        run: echo "Action was triggered! ca=${{ github.event.client_payload.ca_name }} image=${{ github.event.client_payload.ca_image }} branch=${{ github.event.client_payload.branch }}"
+      
+      - name: Checkout
+        uses: actions/checkout@v4 
+        with:
+          ref: ${{ github.event.client_payload.branch }}
+    
+      - name: Update Container Image
+        uses: restackio/update-json-values-action@v1.0.0
+        with:
+          file: ${{ github.event.client_payload.ca_name }}.ca.auto.tfvars.json
+          values: "{\"${{ github.event.client_payload.ca_name }}_image\": \"${{ github.event.client_payload.ca_image }}\"}"
+      
+      - name: Push Changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: Updated ${{ github.event.client_payload.ca_name }} ca image
