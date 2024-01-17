@@ -8,6 +8,7 @@ jobs:
   update-ca-image:
     runs-on: [ ubuntu-latest ]
     permissions:
+      actions: write
       contents: write
 
     steps:
@@ -20,12 +21,18 @@ jobs:
           ref: ${{ github.event.client_payload.branch }}
     
       - name: Update Container Image
-        uses: restackio/update-json-values-action@v1.0.0
+        uses: jossef/action-set-json-field@v2.1
         with:
           file: ${{ github.event.client_payload.ca_name }}.ca.auto.tfvars.json
-          values: "{\"${{ github.event.client_payload.ca_name }}_image\": \"${{ github.event.client_payload.ca_image }}\"}"
+          field: ${{ github.event.client_payload.ca_name }}_image
+          value: ${{ github.event.client_payload.ca_image }}
       
       - name: Push Changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: Updated ${{ github.event.client_payload.ca_name }} ca image
+
+      - name: Trigger update infrastructure action
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: update_env_infrastructure
